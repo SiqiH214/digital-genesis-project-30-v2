@@ -11,8 +11,10 @@ import { MemoryLinksScreen } from "@/components/onboarding/MemoryLinksScreen";
 import { PhotoUploadScreen } from "@/components/onboarding/PhotoUploadScreen";
 import { IdentityPreview } from "@/components/onboarding/IdentityPreview";
 import { CompleteScreen } from "@/components/onboarding/CompleteScreen";
+import { IntroScreen } from "@/components/onboarding/IntroScreen";
+import { IdentityInterview } from "@/components/onboarding/IdentityInterview";
 
-type OnboardingStep = "welcome" | "scan" | "confirm" | "confirmLook" | "voice" | "voicePreview" | "photos" | "links" | "preview" | "complete";
+type OnboardingStep = "welcome" | "intro" | "interview" | "scan" | "confirm" | "confirmLook" | "voice" | "voicePreview" | "photos" | "links" | "preview" | "complete";
 
 const Index = () => {
   const [step, setStep] = useState<OnboardingStep>("welcome");
@@ -62,6 +64,11 @@ const Index = () => {
     }
   }, [step, musicStarted]);
 
+  const handleInterviewComplete = (data: { name: string; occupation: string }) => {
+    setProfileData({ ...profileData, ...data });
+    setStep("scan");
+  };
+
   const handleFaceScan = (data: any) => {
     setFaceData(data);
     setStep("confirm");
@@ -73,6 +80,7 @@ const Index = () => {
   };
 
   const handleLookConfirm = (imageUrl: string) => {
+    setProfileData((prev: any) => ({ ...prev, generatedProfilePhoto: imageUrl }));
     setStep("voice");
   };
 
@@ -126,15 +134,17 @@ const Index = () => {
   const getStepNumber = (currentStep: OnboardingStep): number => {
     const stepMap: Record<OnboardingStep, number> = {
       welcome: 0,
-      scan: 1,
-      confirm: 2,
-      confirmLook: 3,
-      voice: 4,
-      voicePreview: 5,
-      photos: 6,
-      links: 7,
-      preview: 8,
-      complete: 9,
+      intro: 1,
+      interview: 2,
+      scan: 3,
+      confirm: 4,
+      confirmLook: 5,
+      voice: 6,
+      voicePreview: 7,
+      photos: 8,
+      links: 9,
+      preview: 10,
+      complete: 11,
     };
     return stepMap[currentStep];
   };
@@ -154,6 +164,8 @@ const Index = () => {
 
   const [triggerPreviewConfirmAction, setTriggerPreviewConfirmAction] = useState<(() => void) | null>(null);
   const [triggerPreviewEditAction, setTriggerPreviewEditAction] = useState<(() => void) | null>(null);
+  const [triggerIntroAction, setTriggerIntroAction] = useState<(() => void) | null>(null);
+  const [triggerInterviewAction, setTriggerInterviewAction] = useState<(() => void) | null>(null);
 
   const getMainAction = () => {
     switch(step) {
@@ -165,11 +177,15 @@ const Index = () => {
           }, disabled: false };
         } else if (welcomeTerminalComplete) {
           return { label: "Start", action: () => { 
-            setStep("scan"); 
+            setStep("intro"); 
           }, disabled: false };
         } else {
           return { label: "...", action: () => {}, disabled: true };
         }
+      case "intro":
+        return { label: "Begin", action: triggerIntroAction || (() => {}), disabled: !triggerIntroAction };
+      case "interview":
+        return { label: "Enter", action: triggerInterviewAction || (() => {}), disabled: !triggerInterviewAction };
       case "scan":
         return { label: "Capture", action: triggerScanAction || (() => {}), disabled: !triggerScanAction };
       case "confirm":
@@ -225,8 +241,12 @@ const Index = () => {
 
   const getLeftButtonAction = () => {
     switch(step) {
-      case "scan":
+      case "intro":
         return () => setStep("welcome");
+      case "interview":
+        return () => setStep("intro");
+      case "scan":
+        return () => setStep("interview");
       case "confirm":
         return () => setStep("scan");
       case "confirmLook":
@@ -272,10 +292,23 @@ const Index = () => {
           onTerminalComplete={() => setWelcomeTerminalComplete(true)}
         />
       )}
+      {step === "intro" && (
+        <IntroScreen
+          onComplete={() => setStep("interview")}
+          onConfirmReady={setTriggerIntroAction}
+        />
+      )}
+      {step === "interview" && (
+        <IdentityInterview
+          onNext={handleInterviewComplete}
+          onBack={() => setStep("intro")}
+          onConfirmReady={setTriggerInterviewAction}
+        />
+      )}
       {step === "scan" && (
         <FaceScanScreen 
           onNext={handleFaceScan} 
-          onBack={() => setStep("welcome")} 
+          onBack={() => setStep("interview")} 
           currentStep={1} 
           totalSteps={7}
           onScanActionReady={setTriggerScanAction}
@@ -284,6 +317,7 @@ const Index = () => {
       {step === "confirm" && (
         <BiometricConfirmScreen 
           faceData={faceData} 
+          profileData={profileData}
           onNext={handleBiometricConfirm} 
           onBack={() => setStep("scan")} 
           currentStep={2} 
