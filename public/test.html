@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment Test - Digital Genesis</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            background: #000;
+            color: #0f0;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .box {
+            border: 2px solid #0f0;
+            padding: 20px;
+            margin: 20px 0;
+            background: rgba(0, 255, 0, 0.05);
+        }
+        .error { color: #ff0; }
+        .success { color: #0f0; }
+        h1 { text-align: center; border-bottom: 2px solid #0f0; padding-bottom: 10px; }
+        a { color: #0f0; text-decoration: none; border: 1px solid #0f0; padding: 10px 20px; display: inline-block; margin-top: 10px; }
+        a:hover { background: rgba(0, 255, 0, 0.1); }
+        code { background: rgba(0, 255, 0, 0.2); padding: 2px 6px; }
+        .timestamp { font-size: 0.8em; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Digital Genesis - Deployment Test</h1>
+    
+    <div class="box">
+        <h2 class="success">✅ Step 1: Static Files</h2>
+        <p>If you can see this page, static file serving is <strong>WORKING</strong>!</p>
+        <p class="timestamp">Loaded at: <span id="timestamp"></span></p>
+    </div>
+
+    <div class="box">
+        <h2>📋 Step 2: Deployment Info</h2>
+        <p>Domain: <code id="domain">Loading...</code></p>
+        <p>User Agent: <code id="ua">Loading...</code></p>
+        <p>Referrer: <code id="ref">Loading...</code></p>
+    </div>
+
+    <div class="box">
+        <h2>🔗 Step 3: Resource Check</h2>
+        <p>Testing if main app resources are accessible...</p>
+        <div id="resources">Checking...</div>
+    </div>
+
+    <div class="box">
+        <h2>📝 Step 4: Instructions</h2>
+        <p>If you see this test page but the main app is blank:</p>
+        <ol>
+            <li>Open <a href="/" style="display: inline; padding: 2px 6px; margin: 0;">Main App</a></li>
+            <li>Press <code>F12</code> (or <code>Cmd+Option+I</code> on Mac)</li>
+            <li>Check the <strong>Console</strong> tab for errors</li>
+            <li>Look for messages starting with 🚀 📍 🔑 ✅ or ❌</li>
+            <li>Check the <strong>Network</strong> tab for failed requests (red items)</li>
+        </ol>
+    </div>
+
+    <div class="box">
+        <h2>🚀 Common Issues:</h2>
+        <ul>
+            <li><strong class="error">Environment variables missing</strong>: Check Vercel settings</li>
+            <li><strong class="error">Build failed</strong>: Check Vercel deployment logs</li>
+            <li><strong class="error">JavaScript error</strong>: Check browser console</li>
+            <li><strong class="error">CORS issue</strong>: Check Supabase settings</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+        <a href="/">← Try Main App Again</a>
+        <a href="https://vercel.com/siqih214/digital-genesis-project-30/deployments" target="_blank">View Vercel Logs →</a>
+    </div>
+
+    <script>
+        // Populate deployment info
+        document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        document.getElementById('domain').textContent = window.location.href;
+        document.getElementById('ua').textContent = navigator.userAgent.substring(0, 80) + '...';
+        document.getElementById('ref').textContent = document.referrer || 'Direct access';
+
+        // Test resource loading
+        const resources = document.getElementById('resources');
+        
+        async function checkResources() {
+            const urls = [
+                '/',
+                '/assets/index.css',
+                '/assets/index.js'
+            ];
+            
+            let html = '<ul>';
+            for (const url of urls) {
+                try {
+                    const resp = await fetch(url, { method: 'HEAD' });
+                    const status = resp.ok ? '✅' : '❌';
+                    html += `<li>${status} <code>${url}</code> - Status: ${resp.status}</li>`;
+                } catch (e) {
+                    html += `<li class="error">❌ <code>${url}</code> - Error: ${e.message}</li>`;
+                }
+            }
+            html += '</ul>';
+            resources.innerHTML = html;
+        }
+        
+        checkResources();
+
+        console.log('🧪 Test page loaded successfully');
+        console.log('🌐 Current URL:', window.location.href);
+        console.log('📊 Window object exists:', !!window);
+        console.log('📊 Document object exists:', !!document);
+    </script>
+</body>
+</html>
+
